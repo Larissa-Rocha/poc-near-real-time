@@ -28,29 +28,29 @@ services:
         condition: service_healthy
     volumes:
       - ./dagster/server/source:/opt/dagster/app
-    healthcheck:
-      test: ["CMD-SHELL", "grpc_health_probe -addr=:4000"]
-      interval: 10s
-      timeout: 5s
-      retries: 3
+    # healthcheck:
+    #   test: ["CMD-SHELL", "grpc_health_probe -addr=:4000"]
+    #   interval: 10s
+    #   timeout: 5s
+    #   retries: 3
     ports:
       - "5678:5678" #debug port
-    entrypoint: python
-    command:
-      - -m
-      - debugpy
-      - --listen
-      - 0.0.0.0:5678
-      - -m
-      - dagster
-      - code-server
-      - start
-      - -h
-      - 0.0.0.0
-      - -p
-      - "4000"
-      - -m
-      - defs
+    # entrypoint: python
+    # command:
+    #   - -m
+    #   - debugpy
+    #   - --listen
+    #   - 0.0.0.0:5678
+    #   - -m
+    #   - dagster
+    #   - code-server
+    #   - start
+    #   - -h
+    #   - 0.0.0.0
+    #   - -p
+    #   - "4000"
+    #   - -m
+    #   - defs
 
   dagster-web:
     build:
@@ -62,11 +62,9 @@ services:
       - "3000:3000"
     env_file:
       - ./dagster/.env
-    depends_on:
-      dagster-server-1:
-        condition: service_healthy
-      dagster-server-2:
-        condition: service_healthy
+    # depends_on:
+    #   dagster-server-1:
+    #     condition: service_healthy
 
   dagster-daemon:
     build:
@@ -74,11 +72,9 @@ services:
       dockerfile: daemon.Dockerfile
     env_file:
       - ./dagster/.env
-    depends_on:
-      dagster-server-1:
-        condition: service_healthy
-      dagster-server-2:
-        condition: service_healthy
+    # depends_on:
+    #   dagster-server-1:
+    #     condition: service_healthy
 
 volumes:
   db_data:

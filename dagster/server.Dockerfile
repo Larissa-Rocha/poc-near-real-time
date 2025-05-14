@@ -1,9 +1,10 @@
 FROM python:3.12-slim
 
 RUN pip install \
+  debugpy \
   dagster \
   dagster-postgres \
-  dagster-k8s 
+  dagster-dbt 
 
 ARG DAGSTER_GRPC_PORT=4000
 ARG DAGSTER_FOLDER="/opt/dagster"
