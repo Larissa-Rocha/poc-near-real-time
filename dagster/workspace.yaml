@@ -1,0 +1,9 @@
+load_from:
+    - grpc_server:
+        host: dagster-server-1
+        port: 4000
+        location_name: "dagster-server-1"
+#   - grpc_server:
+#       host: dagster-server-2
+#       port: 4001
+#       location_name: "dagster-server-2"

@@ -1,0 +1,16 @@
+[tool.poetry]
+name = "dagster server"
+version = "0.1.0"
+description = ""
+authors = ["Jhordan Lima <jhordan.lima@gupy.com.br>"]
+package-mode = false
+
+[tool.poetry.dependencies]
+python = ">=3.12,<3.13"
+dagster = "^1.9.9"
+dagster-postgres = "^0.25.8"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
