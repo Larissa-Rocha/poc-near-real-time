@@ -1,6 +1,7 @@
 include:
   - docker-compose.dagster.yml
   - docker-compose.lakekeeper.yml
+  - docker-compose.spark.yml
 services:
   default-db:
     image: postgres:16-alpine
@@ -22,3 +23,4 @@ services:
 
 volumes:
   db_data:
+  spark-inputs:
