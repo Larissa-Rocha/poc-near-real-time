@@ -22,4 +22,7 @@ services:
     volumes:
       - spark-inputs:/data/inputs
       - ./data/outputs:/data/outputs
-      - ./jobs:/jobs  
+      - ./jobs:/jobs
+
+volumes:
+  spark-inputs:
