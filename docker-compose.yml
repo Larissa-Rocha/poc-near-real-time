@@ -1,80 +1,24 @@
+include:
+  - docker-compose.dagster.yml
+  - docker-compose.lakekeeper.yml
 services:
-  dagster-db:
+  default-db:
     image: postgres:16-alpine
     environment:
-      POSTGRES_DB: postgres
       POSTGRES_USER: user
       POSTGRES_PASSWORD: password
+      POSTGRES_DB: postgres
     ports:
       - "5432:5432"
     volumes:
       - db_data:/var/lib/postgresql/data
+      - ./common/database/init.sql:/docker-entrypoint-initdb.d/init.sql
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U user -d postgres -h localhost"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-
-  dagster-server-1:
-    build:
-      context: ./dagster
-      dockerfile: server.Dockerfile
-      args:
-        DAGSTER_GRPC_PORT: 4000
-    env_file:
-      - ./dagster/.env
-    depends_on:
-      dagster-db:
-        condition: service_healthy
-    volumes:
-      - ./dagster/server/source:/opt/dagster/app
-    # healthcheck:
-    #   test: ["CMD-SHELL", "grpc_health_probe -addr=:4000"]
-    #   interval: 10s
-    #   timeout: 5s
-    #   retries: 3
-    ports:
-      - "5678:5678" #debug port
-    # entrypoint: python
-    # command:
-    #   - -m
-    #   - debugpy
-    #   - --listen
-    #   - 0.0.0.0:5678
-    #   - -m
-    #   - dagster
-    #   - code-server
-    #   - start
-    #   - -h
-    #   - 0.0.0.0
-    #   - -p
-    #   - "4000"
-    #   - -m
-    #   - defs
-
-  dagster-web:
-    build:
-      context: ./dagster
-      dockerfile: web.Dockerfile
-      args:
-        DAGSTER_WEB_PORT: 3000
-    ports:
-      - "3000:3000"
-    env_file:
-      - ./dagster/.env
-    # depends_on:
-    #   dagster-server-1:
-    #     condition: service_healthy
-
-  dagster-daemon:
-    build:
-      context: ./dagster
-      dockerfile: daemon.Dockerfile
-    env_file:
-      - ./dagster/.env
-    # depends_on:
-    #   dagster-server-1:
-    #     condition: service_healthy
+      interval: 2s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
 
 volumes:
   db_data:

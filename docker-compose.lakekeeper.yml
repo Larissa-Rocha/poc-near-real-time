@@ -1,0 +1,96 @@
+services:
+  lakekeeper-server:
+    image: quay.io/lakekeeper/catalog:latest-main
+    pull_policy: always
+    environment:
+      - LAKEKEEPER__PG_ENCRYPTION_KEY=This-is-NOT-Secure!
+      - LAKEKEEPER__PG_DATABASE_URL_READ=postgresql://user:password@default-db:5432/lakekeeper_db
+      - LAKEKEEPER__PG_DATABASE_URL_WRITE=postgresql://user:password@default-db:5432/lakekeeper_db
+      - RUST_LOG=trace,axum=trace,sqlx=trace,iceberg-catalog=trace
+    command: ["serve"]
+    depends_on:
+      lakekeeper-migrate:
+        condition: service_completed_successfully
+      default-db:
+        condition: service_healthy
+      lakekeeper-minio:
+        condition: service_healthy
+    ports:
+      - "8181:8181"
+
+  lakekeeper-migrate:
+    image: quay.io/lakekeeper/catalog:latest-main
+    pull_policy: always
+    environment:
+      - LAKEKEEPER__PG_ENCRYPTION_KEY=This-is-NOT-Secure!
+      - LAKEKEEPER__PG_DATABASE_URL_READ=postgresql://user:password@default-db:5432/lakekeeper_db
+      - LAKEKEEPER__PG_DATABASE_URL_WRITE=postgresql://user:password@default-db:5432/lakekeeper_db
+      - RUST_LOG=info
+    restart: "no"
+    command: ["migrate"]
+    depends_on:
+      default-db:
+        condition: service_healthy
+
+  lakekeeper-bootstrap:
+    image: curlimages/curl
+    depends_on:
+      lakekeeper-server:
+        condition: service_started
+    restart: "no"
+    command:
+      - -w
+      - "%{http_code}"
+      - "-X"
+      - "POST"
+      - "-v"
+      - "http://lakekeeper-server:8181/management/v1/bootstrap"
+      - "-H"
+      - "Content-Type: application/json"
+      - "--data"
+      - '{"accept-terms-of-use": true}'
+      - "-o"
+      - "/dev/null"
+
+  lakekeeper-initial-warehouse:
+    image: curlimages/curl
+    depends_on:
+      lakekeeper-server:
+        condition: service_started
+      lakekeeper-bootstrap:
+        condition: service_completed_successfully
+    restart: "no"
+    command:
+      - -w
+      - "%{http_code}"
+      - "-X"
+      - "POST"
+      - "-v"
+      - "http://lakekeeper-server:8181/management/v1/warehouse"
+      - "-H"
+      - "Content-Type: application/json"
+      - "--data"
+      - "@create-default-warehouse.json"
+      - "-o"
+      - "/dev/null"
+    volumes:
+      - ./lakekeeper/create-default-warehouse.json:/home/curl_user/create-default-warehouse.json
+
+  lakekeeper-minio:
+    image: bitnami/minio:2025.4.22
+    environment:
+      - MINIO_ROOT_USER=user
+      - MINIO_ROOT_PASSWORD=password
+      - MINIO_API_PORT_NUMBER=9000
+      - MINIO_CONSOLE_PORT_NUMBER=9001
+      - MINIO_SCHEME=http
+      - MINIO_DEFAULT_BUCKETS=poc-nrt
+    healthcheck:
+      test: ["CMD", "mc", "ls", "local", "|", "grep", "poc-nrt"]
+      interval: 2s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    ports:
+      - "9000:9000"
+      - "9001:9001"

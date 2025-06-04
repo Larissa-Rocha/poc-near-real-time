@@ -1,0 +1,34 @@
+services:
+  dagster-server:
+    build:
+      context: ./dagster
+      dockerfile: server.Dockerfile
+      args:
+        DAGSTER_GRPC_PORT: 4000
+    env_file:
+      - ./dagster/.env
+    depends_on:
+      default-db:
+        condition: service_healthy
+    volumes:
+      - ./dagster/server/source:/opt/dagster/app
+    ports:
+      - "5678:5678"
+
+  dagster-web:
+    build:
+      context: ./dagster
+      dockerfile: web.Dockerfile
+      args:
+        DAGSTER_WEB_PORT: 3000
+    ports:
+      - "3000:3000"
+    env_file:
+      - ./dagster/.env
+
+  dagster-daemon:
+    build:
+      context: ./dagster
+      dockerfile: daemon.Dockerfile
+    env_file:
+      - ./dagster/.env
