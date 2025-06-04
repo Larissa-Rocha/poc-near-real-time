@@ -27,7 +27,3 @@ services:
       - spark-inputs:/data/inputs
       - ./data/outputs:/data/outputs
       - ./jobs:/jobs  
-
-networks:
-  spark-network:
-    driver: bridge
